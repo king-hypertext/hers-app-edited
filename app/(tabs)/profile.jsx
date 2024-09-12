@@ -8,7 +8,7 @@ import { router } from 'expo-router'
 import io from 'socket.io-client'
 
 import { moderateScale, horizontalScale, verticalScale } from '../../lib/metrics'
-import { UserContext, UserDataContext } from '../../lib/userContext'
+import { UserContext } from '../../lib/userContext'
 import { api, saveInfo, supabase } from '../../lib/api'
 import colors from '../../lib/colors'
 import axios from 'axios'

@@ -80,7 +80,7 @@ const Login = () => {
         try {
             const data = await login(email, password);
             if (data) {
-                await registerIndieID(email, 21783, '39A5A8wvtyioLgjcW0820z');
+                // await registerIndieID(email, 21783, '39A5A8wvtyioLgjcW0820z');
                 await AsyncStorage.setItem('user', JSON.stringify(data));
                 const { data: userData, error } = await supabase
                     .from('users')

@@ -10,41 +10,55 @@ import { signup, supabase } from '../../lib/api'
 
 const Signup = () => {
 
-    const [name, setName] = useState('')
-    const [email, setEmail] = useState('')
-    const [phonenumber, setPhoneNumber] = useState('')
-    const [password, setPassword] = useState('')
-    const [confirmPassword, setConfirmPassword] = useState('')
-    const [hidePassword, setHidePassword] = useState(true)
-    const [isLoading, setIsLoading] = useState(false)
+    const [formState, setFormState] = useState({
+        name: '',
+        email: '',
+        phoneNumber: '',
+        password: '',
+        confirmPassword: '',
+    });
+
+    const [hidePassword, setHidePassword] = useState(true);
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSignUp = async () => {
-        let payload = {
-            fullname: name,
-            phone_number: phonenumber,
-            email: email,
-        }
-        setIsLoading(true)
-        await signup(name, email, phonenumber, password, confirmPassword)
-            .then(() => setIsLoading(false));
+        setIsLoading(true);
         try {
+            const payload = {
+                fullname: formState.name,
+                phone_number: formState.phoneNumber,
+                email: formState.email,
+            };
+
+            await signup(
+                formState.name,
+                formState.email,
+                formState.phoneNumber,
+                formState.password,
+                formState.confirmPassword
+            );
+
             const { data, error } = await supabase
                 .from('users')
-                .insert([payload]).select();
-            if (data && data.length > 0) {
-                console.log("upsert data: ", data);
+                .insert([payload])
+                .select();
 
+            if (data && data.length > 0) {
+                console.log('upsert data: ', data[0]);
             } else {
                 console.error('No data returned from upsert', error);
             }
+
             if (error) {
                 console.error('Error in insert:', error);
             }
-        } catch (e) {
-            // save error
-            console.log(e);
+        } catch (error) {
+            console.error('Error signing up:', error);
+        } finally {
+            setIsLoading(false);
         }
-    }
+    };
+
 
     return (
         <ScrollView style={styles.main}>
@@ -66,8 +80,8 @@ const Signup = () => {
                 cursorColor={colors.main}
                 selectionColor={colors.hollowMain}
                 style={styles.textInput}
-                value={name}
-                onChangeText={setName}
+                value={formState.name}
+                onChangeText={(text) => setFormState((prevState) => ({ ...prevState, name: text }))}
             />
             <TextInput
                 keyboardType='email-address'
@@ -76,8 +90,8 @@ const Signup = () => {
                 cursorColor={colors.main}
                 selectionColor={colors.hollowMain}
                 style={styles.textInput}
-                value={email}
-                onChangeText={setEmail}
+                value={formState.email}
+                onChangeText={(text) => setFormState((prevState) => ({ ...prevState, email: text }))}
             />
             <TextInput
                 keyboardType='number-pad'
