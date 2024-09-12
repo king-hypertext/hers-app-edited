@@ -1,5 +1,5 @@
 import React, { useContext, useState } from 'react'
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, ActivityIndicator, Alert } from 'react-native'
 import { registerIndieID } from 'native-notify'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
@@ -7,11 +7,12 @@ import { Image } from 'expo-image'
 
 import { verticalScale, horizontalScale, moderateScale } from '../../lib/metrics'
 import { login, supabase } from '../../lib/api'
-import { UserContext, UserDataContext } from '../../lib/userContext'
+import { UserContext } from '../../lib/userContext'
 import colors from '../../lib/colors'
 
 import logo from '@/assets/images/logo.png'
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { errorToast } from '../../lib/toasts'
 
 const Login = () => {
 
@@ -25,45 +26,85 @@ const Login = () => {
     const [isLoading, setIsLoading] = useState(false)
 
 
+    // const handleLogin = async () => {
+    //     setIsLoading(true)
+    //     await login(email, password)
+    //         .then(async (data) => {
+    //             if (data) {
+    //                 try {
+    //                     await registerIndieID(email, 21783, '39A5A8wvtyioLgjcW0820z');
+    //                     await AsyncStorage.setItem('user', JSON.stringify(data));
+    //                     // setUser(data);
+    //                     console.log(data);
+    //                     const { data: userData, error } = await supabase
+    //                         .from('users')
+    //                         .select('*')
+    //                         .eq('email', email);
+    //                     if (userData && userData.length > 0) {
+    //                         await AsyncStorage.mergeItem('user', JSON.stringify(userData[0]));
+    //                         setUser({ ...userData[0], ...data });
+    //                         setIsLoading(false);
+    //                         console.log('Select data:', userData[0]);
+    //                         Alert.alert('Select data', JSON.stringify(userData[0]));                            
+    //                         router.replace('/home');
+    //                     } else {
+    //                         console.error('No data returned from select');
+    //                         setIsLoading(false);
+    //                         errorToast('Error: No data returned from select');
+    //                     }
+
+    //                     if (error) {
+    //                         console.error('Error in select: ', error);
+    //                         setIsLoading(false);
+    //                         errorToast('Error: Failed to login: ' + error.toString());
+    //                     }
+
+    //                 } catch (error) {
+    //                     console.error('Error saving async user: ', error);
+    //                     errorToast('Error: Failed to login: ' + error.toString());
+    //                 }
+    //                 finally {
+    //                     setIsLoading(false);
+    //                 }
+    //             }
+    //             setIsLoading(false);
+    //         })
+    //         .catch((error) => {
+    //             setIsLoading(false);
+    //             console.error('Login error:', error);
+    //         });
+
+    // }
     const handleLogin = async () => {
-        setIsLoading(true)
-        await login(email, password)
-            .then(async (data) => {
-                if (data) {
-                    try {
-                        await registerIndieID(email, 21783, '39A5A8wvtyioLgjcW0820z');
-                        await AsyncStorage.setItem('user', JSON.stringify(data));
-                        // setUser(data);
-                        const { data: userData, error } = await supabase
-                            .from('users')
-                            .select('*')
-                            .eq('email', email);
-
-                        if (userData && userData.length > 0) {
-                            await AsyncStorage.mergeItem('user', JSON.stringify(userData[0]));
-                            setUser({ ...userData[0], ...data });
-                            console.log('Select data:', userData);
-                        } else {
-                            console.error('No data returned from select');
-                        }
-
-                        if (error) {
-                            console.error('Error in select: ', error);
-                        }
-                    } catch (error) {
-                        console.error('Error saving async user: ', error);
-                    } finally {
-                        router.replace('/home');
-                        setIsLoading(false);
-                    }
+        setIsLoading(true);
+        try {
+            const data = await login(email, password);
+            if (data) {
+                await registerIndieID(email, 21783, '39A5A8wvtyioLgjcW0820z');
+                await AsyncStorage.setItem('user', JSON.stringify(data));
+                const { data: userData, error } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('email', email);
+                if (userData && userData.length > 0) {
+                    await AsyncStorage.mergeItem('user', JSON.stringify(userData[0]));
+                    router.replace('/home');
+                } else {
+                    errorToast('Error: No data returned from select');
                 }
-            })
-            .catch((error) => {
-                console.error('Login error:', error);
-                setIsLoading(false);
-            });
 
-    }
+                if (error) {
+                    errorToast('Error: Failed to login: ' + error.toString());
+                }
+                setUser({ ...data, ...userData[0] });
+            }
+        } catch (error) {
+            console.error('Login error:', error);
+            errorToast('Error: Failed to login: ' + error.toString());
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <View style={styles.main}>

@@ -106,34 +106,63 @@ export const signup = async (name, email, phonenumber, password, confirmPassword
     }
 }
 
+// export const login = async (email, password) => {
+//     if (!email || !password) {
+//         return warnToast("Fields can't be empty.")
+//     }
+//     try {
+//         const submit = await fetch(`${api}/login`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 email: email,
+//                 password: password
+//             })
+//         })
+//         const result = await submit.json()
+
+//         if (result.error) {
+//             return errorToast(result.error)
+//         }
+
+//         socket.emit("is-online", email)
+//         const data = result.user
+//         return data
+
+//     } catch (e) {
+//         console.log('error signin up', e)
+//         return errorToast('An error occured. Please try again later')
+//     }
+// }
 export const login = async (email, password) => {
     if (!email || !password) {
         return warnToast("Fields can't be empty.")
     }
+
     try {
-        const submit = await fetch(`${api}/login`, {
+        const response = await fetch(`${api}/login`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                email: email,
-                password: password
-            })
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password }),
         })
-        const result = await submit.json()
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok')
+        }
+
+        const result = await response.json()
 
         if (result.error) {
             return errorToast(result.error)
         }
 
         socket.emit("is-online", email)
-        const data = result.user
-        return data
-
-    } catch (e) {
-        console.log('error signin up', e)
-        return errorToast('An error occured. Please try again later')
+        return result.user
+    } catch (error) {
+        console.error('Login error:', error)
+        return errorToast('An error occurred. Please try again later')
     }
 }
 

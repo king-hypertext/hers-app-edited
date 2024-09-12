@@ -11,10 +11,8 @@ import { UserContext } from '../../../lib/userContext'
 import colors from '@/lib/colors'
 
 import profilePicture from '@/assets/images/icon.png'
-import axios from "axios";
-import { errorToast, successToast, warnToast } from "../../../lib/toasts";
-import { insertData, supabase } from "../../../lib/api";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { errorToast, successToast } from "../../../lib/toasts";
+import { supabase } from "../../../lib/api";
 
 const quickMessages = [
   {
@@ -38,7 +36,7 @@ const keyExtractor = (item, index) => index;
 
 export default function Index() {
 
-  const { user } = useContext(UserContext);
+  const { user } = useContext(UserContext || {});
   const { location } = useContext(LocationContext)
 
   const outermostAnim = useRef(new Animated.Value(0)).current;
@@ -151,16 +149,6 @@ export default function Index() {
       }, 1900);
     }
   }
-  const makeCall = () => {
-    startAnimation();
-
-    // setTimeout(() => Linking.openURL('tel:+233 24 058 8084'), 1900);
-  };
-
-  // const phoneNumber = '+233 24 058 8084'
-  // const userLocation = `My location is: \nLONGITUDE: ${location.longitude}\nLATITUDE: ${location.latitude}`
-  // const url = `sms:${phoneNumber}?body=${encodeURIComponent(message)}\n\n${userLocation}\n\nSent from the HERS App`
-  // const urlEmpty = `sms:${phoneNumber}?body=${encodeURIComponent('Write your message...')}\n\n${userLocation}\n\nSent from the HERS App`
   const sendMessage = async (message) => {
     let users = {
       fullname: user.username,
