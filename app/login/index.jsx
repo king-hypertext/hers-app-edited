@@ -88,15 +88,11 @@ const Login = () => {
                     .eq('email', email);
                 if (userData && userData.length > 0) {
                     await AsyncStorage.mergeItem('user', JSON.stringify(userData[0]));
-                    router.replace('/home');
+                    setUser({ ...data, ...userData[0] });
                 } else {
-                    errorToast('Error: No data returned from select');
+                    setUser(data);
                 }
-
-                if (error) {
-                    errorToast('Error: Failed to login: ' + error.toString());
-                }
-                setUser({ ...data, ...userData[0] });
+                router.replace('/home');
             }
         } catch (error) {
             console.error('Login error:', error);

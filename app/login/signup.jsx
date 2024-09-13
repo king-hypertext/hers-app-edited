@@ -7,6 +7,7 @@ import logo from '@/assets/images/logo.png'
 import { Ionicons } from '@expo/vector-icons'
 import { router } from 'expo-router'
 import { signup, supabase } from '../../lib/api'
+import { errorToast, warnToast } from '../../lib/toasts'
 
 const Signup = () => {
 
@@ -24,12 +25,18 @@ const Signup = () => {
     const handleSignUp = async () => {
         setIsLoading(true);
         try {
-            const payload = {
-                fullname: formState.name,
-                phone_number: formState.phoneNumber,
-                email: formState.email,
-            };
+            // Check if email or phone number already exists
+            const { data: duplicates, error } = await supabase
+                .from('users')
+                .select('email, phone_number').
+                or(`email.eq.${formState.email},phone_number.eq.${formState.phoneNumber}`);
 
+            if (duplicates?.length > 0) {
+                console.error('Email or phone number already exists');
+                warnToast('Email or phone number already exists', 900);
+                return;
+            }
+            // Proceed with signup if email and phone number are unique
             await signup(
                 formState.name,
                 formState.email,
@@ -38,19 +45,24 @@ const Signup = () => {
                 formState.confirmPassword
             );
 
-            const { data, error } = await supabase
+            const payload = {
+                fullname: formState.name,
+                phone_number: formState.phoneNumber,
+                email: formState.email,
+            };
+
+            const { data: insertedData, error: insertError } = await supabase
                 .from('users')
                 .insert([payload])
                 .select();
 
-            if (data && data.length > 0) {
-                console.log('upsert data: ', data[0]);
+            if (insertError) {
+                console.error('Error in insert:', insertError);
+                errorToast('Error signing up. Error: ' + JSON.parse(insertError).toString());
+            } else if (insertedData && insertedData.length > 0) {
+                console.log('upsert data: ', insertedData[0]);
             } else {
-                console.error('No data returned from upsert', error);
-            }
-
-            if (error) {
-                console.error('Error in insert:', error);
+                console.error('No data returned from upsert');
             }
         } catch (error) {
             console.error('Error signing up:', error);
@@ -58,7 +70,6 @@ const Signup = () => {
             setIsLoading(false);
         }
     };
-
 
     return (
         <ScrollView style={styles.main}>
@@ -100,8 +111,8 @@ const Signup = () => {
                 cursorColor={colors.main}
                 selectionColor={colors.hollowMain}
                 style={styles.textInput}
-                value={phonenumber}
-                onChangeText={setPhoneNumber}
+                value={formState.phoneNumber}
+                onChangeText={(text) => setFormState((prevState) => ({ ...prevState, phoneNumber: text }))}
             />
             <TextInput
                 keyboardType='default'
@@ -111,8 +122,8 @@ const Signup = () => {
                 cursorColor={colors.main}
                 selectionColor={colors.hollowMain}
                 style={styles.textInput}
-                value={password}
-                onChangeText={setPassword}
+                value={formState.password}
+                onChangeText={(text) => setFormState((prevState) => ({ ...prevState, password: text }))}
             />
             <TextInput
                 keyboardType='default'
@@ -122,8 +133,8 @@ const Signup = () => {
                 cursorColor={colors.main}
                 selectionColor={colors.hollowMain}
                 style={styles.textInput}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
+                value={formState.confirmPassword}
+                onChangeText={(text) => setFormState((prevState) => ({ ...prevState, confirmPassword: text }))}
             />
 
             <TouchableOpacity activeOpacity={.7} style={styles.showPassword} onPress={() => setHidePassword(!hidePassword)}>

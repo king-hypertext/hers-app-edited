@@ -67,44 +67,44 @@ export const insertData = async (users, emergencies) => {
 };
 
 
-export const signup = async (name, email, phonenumber, password, confirmPassword) => {
-    if (!name || !email || !phonenumber || !password || !confirmPassword) {
-        return warnToast("Fields can't be empty.")
-    }
-    if (!/\S+@\S+\.\S+/.test(email)) {
-        return warnToast("Please enter a valid email")
-    }
-    if (password !== confirmPassword) {
-        return warnToast("Passwords don't match.")
-    }
-    try {
+// export const signup = async (name, email, phonenumber, password, confirmPassword) => {
+//     if (!name || !email || !phonenumber || !password || !confirmPassword) {
+//         return warnToast("Fields can't be empty.")
+//     }
+//     if (!/\S+@\S+\.\S+/.test(email)) {
+//         return warnToast("Please enter a valid email")
+//     }
+//     if (password !== confirmPassword) {
+//         return warnToast("Passwords don't match.")
+//     }
+//     try {
 
-        const submit = await fetch(`${api}/signup`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                name: name,
-                email: email,
-                phonenumber: phonenumber,
-                password: password
-            })
-        })
-        const result = await submit.json()
+//         const submit = await fetch(`${api}/signup`, {
+//             method: 'POST',
+//             headers: {
+//                 'Content-Type': 'application/json',
+//             },
+//             body: JSON.stringify({
+//                 name: name,
+//                 email: email,
+//                 phonenumber: phonenumber,
+//                 password: password
+//             })
+//         })
+//         const result = await submit.json()
 
-        if (result.error) {
-            return errorToast(result.error)
-        }
+//         if (result.error) {
+//             return errorToast(result.error)
+//         }
 
-        successToast("Account created successfully")
-        return router.back()
+//         successToast("Account created successfully")
+//         return router.back()
 
-    } catch (e) {
-        console.log('error signin up', e)
-        return errorToast('An error occured. Please try again later')
-    }
-}
+//     } catch (e) {
+//         console.log('error signin up', e)
+//         return errorToast('An error occured. Please try again later')
+//     }
+// }
 
 // export const login = async (email, password) => {
 //     if (!email || !password) {
@@ -136,6 +136,47 @@ export const signup = async (name, email, phonenumber, password, confirmPassword
 //         return errorToast('An error occured. Please try again later')
 //     }
 // }
+export const signup = async (name, email, phonenumber, password, confirmPassword) => {
+    if (!name || !email || !phonenumber || !password || !confirmPassword) {
+        return warnToast("Fields can't be empty.");
+    }
+
+    if (!isValidEmail(email)) {
+        return warnToast("Please enter a valid email");
+    }
+
+    if (password !== confirmPassword) {
+        return warnToast("Passwords don't match.");
+    }
+
+    try {
+        const response = await fetch(`${api}/signup`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, email, phonenumber, password }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+
+        if (result.error) {
+            return errorToast(result.error);
+        }
+
+        successToast("Account created successfully");
+        return router.back();
+    } catch (error) {
+        console.error('Error signing up:', error);
+        return errorToast('An error occurred. Please try again later, Error: ' + error);
+    }
+};
+
+const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+
 export const login = async (email, password) => {
     if (!email || !password) {
         return warnToast("Fields can't be empty.")
